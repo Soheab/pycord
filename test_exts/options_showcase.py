@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from enum import Enum, IntEnum
-from typing import Annotated, Literal, Optional, Union
+from typing import TYPE_CHECKING, Annotated, Literal, Optional, Union
 
 import discord
 from discord import OptionChoice, option
 from discord.enums import SlashCommandOptionType
 from discord.ext import commands
+
+if TYPE_CHECKING:
+    from discord import Member as TcMember
+    from discord import User as TcUser
 
 
 class Color(Enum):
@@ -32,6 +36,24 @@ class OptionShowcase(commands.Cog):
     def __init__(self, bot: discord.Bot):
         self.bot = bot
 
+    @staticmethod
+    def create_command():
+        @commands.slash_command(name="created_command")
+        async def created_command(
+            _,
+            ctx: discord.ApplicationContext,
+            text: str,
+        ) -> None:
+            await ctx.respond(f"text={text}")
+
+        return created_command
+
+    @commands.slash_command(name="autobackup")
+    async def autobackup(
+        self, ctx: discord.ApplicationContext, mode: bool, interval: int = 24
+    ) -> None:
+        await ctx.respond(f"mode={mode} interval={interval}")
+
     @commands.slash_command(name="opt_primitives")
     async def opt_primitives(
         self,
@@ -41,9 +63,7 @@ class OptionShowcase(commands.Cog):
         ratio: float,
         flag: bool,
     ) -> None:
-        await ctx.respond(
-            f"text={text} count={count} ratio={ratio} flag={flag}"
-        )
+        await ctx.respond(f"text={text} count={count} ratio={ratio} flag={flag}")
 
     @commands.slash_command(name="opt_choices")
     @option("color", description="Pick a color", choices=["red", "green", "blue"])
@@ -97,9 +117,7 @@ class OptionShowcase(commands.Cog):
         channel: Union[discord.TextChannel, discord.VoiceChannel],
         thread: discord.Thread,
     ) -> None:
-        await ctx.respond(
-            f"channel={channel.mention} thread={thread.mention}"
-        )
+        await ctx.respond(f"channel={channel.mention} thread={thread.mention}")
 
     @commands.slash_command(name="opt_channeltypes")
     @option(
@@ -135,6 +153,14 @@ class OptionShowcase(commands.Cog):
         self,
         ctx: discord.ApplicationContext,
         target: Union[discord.Member, discord.User],
+    ) -> None:
+        await ctx.respond(f"target={target.mention}")
+
+    @commands.slash_command(name="opt_type_checking")
+    async def opt_type_checking(
+        self,
+        ctx: discord.ApplicationContext,
+        target: Union[TcMember, TcUser],
     ) -> None:
         await ctx.respond(f"target={target.mention}")
 
@@ -191,4 +217,6 @@ class OptionShowcase(commands.Cog):
 
 
 def setup(bot: discord.Bot) -> None:
-    bot.add_cog(OptionShowcase(bot))
+    cog = OptionShowcase(bot)
+    cog.create_command()
+    bot.add_cog(cog)
